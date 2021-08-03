@@ -30,7 +30,12 @@ namespace SaudeMental.Api.Controllers
         [HttpGet("User/{userId}/N/{num}")]
         public async Task<ActionResult<List<FormInfo>>> GetFormInfo(string userId, int num)
         {
-            var formInfo = await _context.FormInfos.Where(u => u.UserId == userId).Skip(Math.Max(0, _context.FormInfos.Count() - num)).ToListAsync();
+            var formInfoCount = await _context.FormInfos.Where(u => u.UserId == userId).CountAsync();
+
+            if (formInfoCount == 0)
+                return NotFound();
+
+            var formInfo = await _context.FormInfos.Where(u => u.UserId == userId).Skip(Math.Max(0, formInfoCount - num)).ToListAsync();
 
             if (formInfo == null || formInfo.Count == 0)
             {

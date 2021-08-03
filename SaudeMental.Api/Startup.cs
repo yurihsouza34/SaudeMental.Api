@@ -21,6 +21,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.HttpOverrides;
+using Serilog;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace SaudeMental.Api
 {
@@ -49,11 +51,11 @@ namespace SaudeMental.Api
             }).AddEntityFrameworkStores<AppDbContext>();
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IReportService, ReportService>();
 
             services.AddDbContext<AppDbContext>(opt => {
-                opt.UseSqlite(
-                    Configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
+                opt.UseMySql(Configuration.GetConnectionString("DefaultConnection"),
+                    new MySqlServerVersion(new Version(10, 3, 29)));
             });
 
             services.AddAuthentication(options =>
@@ -96,6 +98,8 @@ namespace SaudeMental.Api
             }
 
             //app.UseHttpsRedirection();
+
+            app.UseSerilogRequestLogging();
 
             app.UseRouting();
 

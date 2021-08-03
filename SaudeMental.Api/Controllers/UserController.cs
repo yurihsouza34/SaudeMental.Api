@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using SaudeMental.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using SaudeMental.Api.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace SaudeMental.Api.Controllers
 {
@@ -13,9 +15,11 @@ namespace SaudeMental.Api.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly AppDbContext _context;
+        public UserController(IUserService userService, AppDbContext context)
         {
             _userService = userService;
+            _context = context;
         }
 
         // GET api/<UserController>/5
@@ -55,6 +59,11 @@ namespace SaudeMental.Api.Controllers
         public async Task<IActionResult> Delete(string userName)
         {
             var result = await _userService.DeleteAsync(userName);
+
+            _context.UserInfos.RemoveRange(_context.UserInfos.Where(u => u.userId == userName));
+            _context.FormInfos.RemoveRange(_context.FormInfos.Where(u => u.UserId == userName));
+
+            await _context.SaveChangesAsync();
 
             if (result)
                 return NoContent();
